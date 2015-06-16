@@ -1,10 +1,9 @@
 // Copyright ARM Ltd 2001. All rights reserved.
 // Modified by VL (07/24/2003)
 
-        .global Vector_Init
+        .global _freertos_vector_table
 
         .balign 4
-//        .section .isr_vector, "x"
         .code 32
 
 // These are example exception vectors and exception handlers
@@ -18,13 +17,13 @@
 
 	.equ T_bit, 0x20
 
-	.extern vPortSVCHandler
-	.extern vPortResetHandler
 	.extern Undefined_Handler_Panic
 	.extern Prefetch_Handler_Panic
 	.extern Abort_Handler_Panic
 	.extern __stack
 	.extern _init
+	.extern FreeRTOS_IRQ_Handler
+	.extern FreeRTOS_SWI_Handler
 
 // *****************
 // Exception Vectors
@@ -33,9 +32,9 @@
 // Note: LDR PC instructions are used here, though branch (B) instructions
 // could also be used, unless the ROM is at an address >32MB.
 
-        .section .isr_vector, "x"
+        .section .freertos_vectors, "x"
 
-Vector_Init:
+_freertos_vector_table:
         LDR     PC, Reset_Addr
         LDR     PC, Undefined_Addr
         LDR     PC, SWI_Addr
@@ -105,18 +104,14 @@ Abort_Handler:
     MOV        R0, SP
     BL         Abort_Handler_Panic
 
-// never refered to, this is only for backward compatibility purpose.
-// FIQ_Handler
-// 		B       FIQ_Handler
-
 
 // The following SWI handler support just the taskswitch for OpenRTOS
 SWI_Handler:
-		B				vPortSVCHandler
+		B				FreeRTOS_SWI_Handler
 
 FIQ_Handler:
 IRQ_Handler:
-	B					vPortInterruptContext
+	B					FreeRTOS_IRQ_Handler
 
     .end
 

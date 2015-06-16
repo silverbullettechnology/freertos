@@ -1,8 +1,9 @@
 NAME = FreeRTOSDemo
 
-CC = arm-gnueabi-gcc
-LD = arm-gnueabi-gcc
-OBJCOPY = arm-gnueabi-objcopy
+DS5PATH = /opt/DS-5/sw/gcc/bin/
+CC = $(DS5PATH)arm-linux-gnueabihf-gcc
+LD = $(DS5PATH)arm-linux-gnueabihf-gcc
+OBJCOPY = $(DS5PATH)arm-linux-gnueabihf-objcopy
 
 DEFINES = -DPRINTF_FLOAT_SUPPORT
 
@@ -14,28 +15,29 @@ BUILD_DIR = Build
 C_OPTS =	-I"$(SOURCE_DIR)/Demo/CORTEX_A9_S3MA" \
 			-I"$(SOURCE_DIR)/Demo/Common/include" \
 			-I"$(SOURCE_DIR)/Source/include" \
-			-I"$(SOURCE_DIR)/Source/portable/GCC/ARM_Cortex-A9" \
+			-I"$(SOURCE_DIR)/Source/portable/GCC/ARM_CA9" \
 			-O3 \
 			-Wall \
 			-fmessage-length=0 \
 			-mcpu=cortex-a9 \
-			-g3 \
-			-gdwarf-2 \
+			-mfpu=neon \
+			-marm \
+			-g \
 			-std=c99
-
-#			-Werror \
 
 C_FILES =	Source/croutine.c \
 			Source/list.c \
 			Source/queue.c \
 			Source/tasks.c \
 			Source/timers.c \
-			Source/portable/GCC/ARM_Cortex-A9/port.c \
+			Source/portable/GCC/ARM_CA9/port.c \
 			Source/portable/MemMang/heap_2.c \
 			Demo/CORTEX_A9_S3MA/main.c \
 			Demo/CORTEX_A9_S3MA/pl011.c \
 			Demo/CORTEX_A9_S3MA/printf-stdarg.c \
 			Demo/CORTEX_A9_S3MA/serial.c \
+			Demo/CORTEX_A9_S3MA/port.c \
+			Demo/CORTEX_A9_S3MA/ParTest.c \
 			Demo/Common/Minimal/BlockQ.c \
 			Demo/Common/Minimal/blocktim.c \
 			Demo/Common/Minimal/comtest.c \
@@ -49,7 +51,9 @@ C_FILES =	Source/croutine.c \
 			Demo/Common/Minimal/recmutex.c \
 			Demo/Common/Minimal/semtest.c
 
-S_FILES =	Demo/CORTEX_A9_S3MA/startup.S
+S_FILES =	Source/portable/GCC/ARM_CA9/portASM.S \
+			Demo/CORTEX_A9_S3MA/startup.S
+			
 
 C_OBJS = $(C_FILES:%.c=$(BUILD_DIR)/%.o)
 
@@ -62,26 +66,23 @@ ALL_CFLAGS = $(C_OPTS) $(DEFINES) $(CFLAGS) $(AUTODEPENDENCY_CFLAGS)
 ALL_LDFLAGS_BASE =	$(LD_FLAGS) \
 					-nostartfiles \
 					-mcpu=cortex-a9 \
-					-g3 \
-					-gdwarf-2
+					-g3
 
 LINK_PATH = MultiCore/
 
 ALL_LDFLAGS_0 =	$(ALL_LDFLAGS_BASE) \
-				-Wl,-T,$(LINK_PATH)core.0.ld
+				-Wl,-T,$(LINK_PATH)core.0.ld -Wl,-Map,$(BUILD_DIR)/core.0.map 
 
 ALL_LDFLAGS_1 =	$(ALL_LDFLAGS_BASE) \
-				-Wl,-T,$(LINK_PATH)core.1.ld
+				-Wl,-T,$(LINK_PATH)core.1.ld -Wl,-Map,$(BUILD_DIR)/core.1.map
 
 ALL_LDFLAGS_2 =	$(ALL_LDFLAGS_BASE) \
-				-Wl,-T,$(LINK_PATH)core.2.ld
+				-Wl,-T,$(LINK_PATH)core.2.ld -Wl,-Map,$(BUILD_DIR)/core.2.map
 
 ALL_LDFLAGS_3 =	$(ALL_LDFLAGS_BASE) \
-				-Wl,-T,$(LINK_PATH)core.3.ld
+				-Wl,-T,$(LINK_PATH)core.3.ld -Wl,-Map,$(BUILD_DIR)/core.3.map
 
 AUTODEPENDENCY_CFLAGS=-MMD -MF$(@:.o=.d) -MT$@
-
-
 
 
 .SUFFIXES: .o .c .bin

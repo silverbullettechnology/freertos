@@ -19,6 +19,7 @@
 
 #include <stdarg.h>
 #include <stdbool.h>
+#include <string.h>
 
 #ifdef PRINTF_FLOAT_SUPPORT
 #include <math.h>
@@ -331,8 +332,8 @@ unsigned int base,char letterbase,int zeropadwidth,bool zeroisempty)
 	// Zero pad the number if requested.
 	if(zeropadwidth>0)
 	{
-		int length=bufferend-string-1;
-		for(int i=0;i<zeropadwidth-length;i++) *--string='0';
+		int i, length=bufferend-string-1;
+		for(i=0;i<zeropadwidth-length;i++) *--string='0';
 	}
 
 	return string;
@@ -345,6 +346,7 @@ static char *formatfloat(char *bufferstart,double absvalue,int precision,int zer
 	absvalue+=0.5/pow(10,precision);
 
 	union { uint64_t l; double f; } pun;
+	int i;
 
 	pun.f=absvalue;
 	int exp2=((pun.l>>52)&0x7ff)-1023;
@@ -412,10 +414,10 @@ static char *formatfloat(char *bufferstart,double absvalue,int precision,int zer
 	if(numberofdigits<zeropadwidth)
 	{
 		int pad=zeropadwidth-numberofdigits;
-		for(int i=0;i<pad;i++) *ptr++='0';
+		for(i=0;i<pad;i++) *ptr++='0';
 	}
 
-	for(int i=0;i<numberofdigits;i++)
+	for(i=0;i<numberofdigits;i++)
 	{
 		if(i==decimalpoint)
 		{
@@ -449,8 +451,8 @@ static int printstring(char **out,const char *string,int width,bool padleft)
 		const char *end=string;
 		while(*end) end++;
 
-		int length=end-string;
-		for(int i=0;i<width-length;i++)
+		int i, length=end-string;
+		for(i=0;i<width-length;i++)
 		{
 			printchar(out,' ');
 			count++;

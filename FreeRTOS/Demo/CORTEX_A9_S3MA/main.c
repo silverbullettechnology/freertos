@@ -65,6 +65,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include "port.h"
 
 /* Demo Includes. */
 #include "integer.h"
@@ -131,7 +132,7 @@ int main( void )
 	vStartRecursiveMutexTasks();
 
 	/* Start the tasks defined within the file. */
-	xTaskCreate( vCheckTask, (const signed char *)"Check", configMINIMAL_STACK_SIZE, NULL, mainCHECK_TASK_PRIORITY, NULL );
+	xTaskCreate( vCheckTask, (const char *)"Check", configMINIMAL_STACK_SIZE, NULL, mainCHECK_TASK_PRIORITY, NULL );
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
@@ -262,21 +263,19 @@ signed char cBuffer[64];
 			{
 				xFailureTime = xLastExecutionTime;
 			}
-			sprintf( (char *)cBuffer, "Fail: %lu\r\n", xFailureTime / 1000 );
+			sprintf( (char *)cBuffer, "Fail: %lu\r\n", (unsigned long)(xFailureTime / 1000) );
 		}
 		else
 		{
-			sprintf( (char *)cBuffer, "Pass: %lu\r\n", xLastExecutionTime / 1000 );
+			sprintf( (char *)cBuffer, "Pass: %lu\r\n", (unsigned long)(xLastExecutionTime / 1000) );
 
-			sprintf( (char *)cBuffer, "From Core: %ld\r\n", portCORE_ID());
+			sprintf( (char *)cBuffer, "From Core: %ld\r\n", (long)portCORE_ID());
 		
 		}
 		vSerialPutString((xComPortHandle)mainPRINT_PORT, (const signed char * const)cBuffer, strlen((char *)cBuffer) );
 	}
 }
 /*-----------------------------------------------------------*/
-
-#if configPLATFORM == 2
 
 static unsigned long prvReadP15_C1_C0_0( void )
 {
@@ -366,15 +365,11 @@ volatile unsigned long ulReturn = 0UL;
 
 /*----------------------------------------------------------------------------*/
 
-#endif
-
 static void prvSetupHardware( void )
 {
 unsigned long ulVector = 0UL;
-#if configPLATFORM == 2
 unsigned long ulValue = 0UL;
 char cAddress[32];
-#endif
 
 	portDISABLE_INTERRUPTS();
 
@@ -387,7 +382,6 @@ extern void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvPara
 extern void vUARTInitialise(unsigned long ulUARTPeripheral, unsigned long ulBaud, unsigned long ulQueueSize );
 	vUARTInitialise( mainPRINT_PORT, mainPRINT_BAUDRATE, 64 );
 
-#if configPLATFORM == 2
 	ulValue = portCORE_ID();
 	sprintf( cAddress, "Core: %ld\r\n", ulValue );
 	vSerialPutString((xComPortHandle)configUART_PORT,(const signed char * const)cAddress, strlen(cAddress) );
@@ -430,7 +424,6 @@ extern void vUARTInitialise(unsigned long ulUARTPeripheral, unsigned long ulBaud
 	ulValue = prvReadP15_C12_C0_1();
 	sprintf( cAddress, "MVBAR: 0x%08lX\r\n", ulValue );
 	vSerialPutString((xComPortHandle)configUART_PORT,(const signed char * const)cAddress, strlen(cAddress) );
-#endif /* configPLATFORM == 2 */
 
 	/* Perform any other peripheral configuration. */
 }
@@ -442,9 +435,9 @@ void vApplicationMallocFailedHook( void )
 }
 /*----------------------------------------------------------------------------*/
 
-extern void vAssertCalled( char *file, int line )
+void vAssertCalled( const char *file, unsigned long line )
 {
-	printf("Assertion failed at %s, line %d\n\r",file,line);
+	printf("Assertion failed at %s, line %lu\n\r",file,line);
 	taskDISABLE_INTERRUPTS();
 	for( ;; );
 }

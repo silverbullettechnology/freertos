@@ -1,37 +1,21 @@
-ENTRY(Vector_Init);
+/*******************************************************************/
+
+/*******************************************************************/
+
+_STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x2000;
+_HEAP_SIZE = DEFINED(_HEAP_SIZE) ? _HEAP_SIZE : 0x2000;
+
+_ABORT_STACK_SIZE = DEFINED(_ABORT_STACK_SIZE) ? _ABORT_STACK_SIZE : 1024;
+_SUPERVISOR_STACK_SIZE = DEFINED(_SUPERVISOR_STACK_SIZE) ? _SUPERVISOR_STACK_SIZE : 2048;
+_FIQ_STACK_SIZE = DEFINED(_FIQ_STACK_SIZE) ? _FIQ_STACK_SIZE : 1024;
+_UNDEF_STACK_SIZE = DEFINED(_UNDEF_STACK_SIZE) ? _UNDEF_STACK_SIZE : 1024;
+
+/* Define Memories in the system */
 
 MEMORY
 {
-	ram (rwx) : ORIGIN = 0x81010000, LENGTH = ( 16M - 0x10000 )
+   ddr (rwx) : ORIGIN = 0x81010000, LENGTH = ( 16M - 0x10000 )
+   ocm (rwx) : ORIGIN = 0x04000000, LENGTH = ( 1M )
 }
 
-PROVIDE(__stack = 0x81010000);
-
-SECTIONS
-{
-    .text :
-    {
-        _text = .;
-        __isr_vector_start = .;
-        *(.isr_vector)
-        __isr_vector_end = .;
-        *(.text*)
-        *(.rodata*)
-        _etext = .;
-    } > ram
-    .data : /*AT(ADDR(.text) + SIZEOF(.text))*/
-    {
-        _data = .;
-        *(vtable)
-        *(.data*)
-        _edata = .;
-    } > ram
-    .bss :
-    {
-        _bss = .;
-        *(.bss*)
-        *(COMMON)
-        _ebss = .;
-    } > ram
-}
-
+INCLUDE s3ma.ld

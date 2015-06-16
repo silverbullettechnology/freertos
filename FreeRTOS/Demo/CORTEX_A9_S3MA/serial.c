@@ -59,6 +59,7 @@
 
 #include "FreeRTOS.h"
 #include "serial.h"
+#include "port.h"
 
 extern portBASE_TYPE xUARTReceiveCharacter( unsigned long ulUARTPeripheral, signed char *pcChar, portTickType xDelay );
 extern portBASE_TYPE xUARTSendCharacter( unsigned long ulUARTPeripheral, signed char cChar, portTickType xDelay );
