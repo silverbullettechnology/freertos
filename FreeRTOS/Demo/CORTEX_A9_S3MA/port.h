@@ -1,6 +1,6 @@
 
 /*
-    FreeRTOS V7.0.1 - Copyright (C) 2011 Real Time Engineers Ltd.
+   FreeRTOS V8.1 - Copyright (C) 2015 Silver Bullet Technology LLC
 	
 
     ***************************************************************************
@@ -53,10 +53,10 @@
 */
 
 /*------------------------------------------------------------------------
- * Authors: Dag Ågren, Åbo Akademi University, Finland
- * 			Simon Holmbacka, Åbo Akademi University, Finland
+ * Based on Cortex A9 implementation with original authors:
+ * 	Dag Ågren, Åbo Akademi University, Finland
+ * 	Simon Holmbacka, Åbo Akademi University, Finland
  * 
- * This port has been developed as a part of the RECOMP project
  *------------------------------------------------------------------------*/
 
 #ifndef PORT_H
@@ -79,22 +79,6 @@ extern "C" {
  */
 
 /*-----------------------------------------------------------*/	
-
-#if 0
-extern portBASE_TYPE xPortSetInterruptMask(void);
-extern void vPortClearInterruptMask(portBASE_TYPE);
-#define portSET_INTERRUPT_MASK()				xPortSetInterruptMask()
-#define portCLEAR_INTERRUPT_MASK(x)				vPortClearInterruptMask(x)
-#define portSET_INTERRUPT_MASK_FROM_ISR()		portSET_INTERRUPT_MASK()
-#define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)	portCLEAR_INTERRUPT_MASK(x)
-#define portDISABLE_INTERRUPTS()				((void)portSET_INTERRUPT_MASK())
-static inline void portENABLE_INTERRUPTS(void)
-{
-	portCLEAR_INTERRUPT_MASK(configLOWEST_INTERRUPT_PRIORITY);
-	__asm__ __volatile__ ( "nop" ); /* Allow the yield SGI time to propagate. */
-}
-
-#endif
 
 static inline unsigned long portCORE_ID(void)
 {
@@ -169,19 +153,6 @@ static inline unsigned long portCORE_ID(void)
 /* SGI for Yielding Task. */
 #define portSGI_YIELD_VECTOR_ID			( 1 )
 #define portSGI_YIELD( xCPUID )			( ( 0 << 24 ) | ( ( 1 << 16 ) << ( xCPUID ) ) | portSGI_YIELD_VECTOR_ID )
-
-#if 0
-
-static inline void portYIELD(void)
-{
-	if( ( portGIC_READ( portGIC_ICDISPR_BASE( portGIC_DISTRIBUTOR_BASE ) ) & portSGI_YIELD_VECTOR_ID ) == 0UL)
-	{
-		portGIC_WRITE( portGIC_ICDSGIR( portGIC_DISTRIBUTOR_BASE ), portSGI_YIELD( portCORE_ID() ) );
-		__asm__ __volatile__ ( "nop" ); /* Allow the yield SGI time to propagate. */
-	}
-}
-#define portSGI_CLEAR_YIELD( pxDistributorBase, xCPUID )	portGIC_WRITE( portGIC_ICDICPR_BASE( pxDistributorBase ), portSGI_YIELD_VECTOR_ID )
-#endif
 
 /* Processor Mode Definitions (CPSR) */
 #define portPROCESSOR_MODE_MASK	( ~(0x1FUL) )
