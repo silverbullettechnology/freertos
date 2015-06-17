@@ -67,8 +67,8 @@
 
 #define UART_USE_INTERRUPT			0
 
-#define UART0_BASE			( 0x080A1000UL )		/* S3MA UART0. */
-#define UART1_BASE			( 0x080A2000UL )		/* S3MA UART1. */
+#define UART0_BASE			( UART0_APB_ABSOLUTE_BASE )		/* S3MA UART0. */
+#define UART1_BASE			( UART1_APB_ABSOLUTE_BASE )		/* S3MA UART1. */
 #define UART_DEVICE_TYPE	0
 
 #define UARTDR(x)			( (volatile unsigned char *)	( (x) + 0x0000UL ) )	/* Data Register */
@@ -101,7 +101,7 @@
 #define UART_FLAG_TXFF		( 1 << 5 )
 #define UART_FLAG_RXFE		( 1 << 4 )
 
-#define UART_CLK_HZ				( 38400000UL )
+#define UART_CLK_HZ				( configCLOCK_HZ )
 
 #define UART_FIFO_SIZE_BYTES	( 32UL )
 #define UART0_VECTOR_ID			( 44 )
@@ -198,11 +198,14 @@ unsigned long ulBase = 0;
 #if UART_USE_INTERRUPT
 unsigned long ulVectorID = 0;
 #endif
+unsigned int temp;
+unsigned int divider;
+unsigned int remainder;
+unsigned int fraction;
 
 	switch ( ulUARTPeripheral )
 	{
 	case 0:
-	case 2:
 		ulBase = UART0_BASE;
 		#if UART_USE_INTERRUPT
 		ulVectorID = UART0_VECTOR_ID;
@@ -212,7 +215,6 @@ unsigned long ulVectorID = 0;
 		#endif
 		break;
 	case 1:
-	case 3:
 		ulBase = UART1_BASE;
 		#if UART_USE_INTERRUPT
 		ulVectorID = UART1_VECTOR_ID;
@@ -223,12 +225,25 @@ unsigned long ulVectorID = 0;
 		break;
 	}
 
+	/*
+	* Set baud rate
+	*
+	* IBRD = UART_CLK / (16 * BAUD_RATE)
+	* FBRD = RND((64 * MOD(UART_CLK,(16 * BAUD_RATE)))
+	*		/ (16 * BAUD_RATE))
+	*/
+	temp = 16 * ulBaud;
+	divider = UART_CLK_HZ / temp;
+	remainder = UART_CLK_HZ % temp;
+	temp = (8 * remainder) / ulBaud;
+	fraction = (temp >> 1) + (temp & 1);
+
 	/* First Disable the Peripheral. */
 	*UARTCR(ulBase) = 0UL;
 
 	/* Configure the Peripheral. */
-	*UARTIBRD(ulBase) = UART_CLK_HZ / ( 16 * ulBaud );
-	*UARTFBRD(ulBase) = UART_CLK_HZ % ( 16 * ulBaud );
+	*UARTIBRD(ulBase) = divider;
+	*UARTFBRD(ulBase) = fraction;
 	*UARTLCR_H(ulBase) = ( 3 << 5 ) | ( 1 << 4 );
 
 	/* Configure the Interrupts. */

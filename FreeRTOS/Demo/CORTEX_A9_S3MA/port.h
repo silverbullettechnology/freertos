@@ -108,7 +108,7 @@ static inline unsigned long portCORE_ID(void)
 #define portPERIPHBASE							( ARM_PRIVATE_ABSOLUTE_BASE )		/* S3MA */
 #define portGIC_PRIVATE_BASE					( portPERIPHBASE + 0x100UL )
 #define portGIC_DISTRIBUTOR_BASE				( portPERIPHBASE + 0x1000UL )
-#define portEXCEPTION_VECTORS_BASE				( portCORE_ID()*0x1000000 )
+#define portEXCEPTION_VECTORS_BASE				( (portCORE_ID()*0x1000000) + DMC_S_ABSOLUTE_BASE )
 #define portMAX_VECTORS							( 32UL )
 
 
@@ -198,6 +198,7 @@ static inline void portYIELD(void)
 #define portFIQ_STACK_SIZE		( 256 )
 #define portIRQ_STACK_SIZE		( 256 )
 #define portABORT_STACK_SIZE	( 256 )
+#define portSYS_STACK_SIZE		( 256 )
 #define portSVC_STACK_SIZE		( 256 )
 
 #ifdef __cplusplus

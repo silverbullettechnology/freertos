@@ -101,10 +101,12 @@ const unsigned long ulKernelPriority = configKERNEL_INTERRUPT_PRIORITY;
 static portSTACK_TYPE puxFIQStack[ portFIQ_STACK_SIZE ];
 static portSTACK_TYPE puxIRQStack[ portIRQ_STACK_SIZE ];
 static portSTACK_TYPE puxAbortStack[ portABORT_STACK_SIZE ];
+static portSTACK_TYPE puxSYSStack[ portSYS_STACK_SIZE ];
 static portSTACK_TYPE puxSVCStack[ portSVC_STACK_SIZE ];
 static portSTACK_TYPE *puxFIQStackPointer = &(puxFIQStack[ portFIQ_STACK_SIZE - 1 ] );
 static portSTACK_TYPE *puxIRQStackPointer = &(puxIRQStack[ portIRQ_STACK_SIZE - 1 ] );
 static portSTACK_TYPE *puxAbortStackPointer = &(puxAbortStack[ portABORT_STACK_SIZE - 1 ] );
+static portSTACK_TYPE *puxSYSStackPointer = &(puxSYSStack[ portSYS_STACK_SIZE - 1 ] );
 static portSTACK_TYPE *puxSVCStackPointer = &(puxSVCStack[ portSVC_STACK_SIZE - 1 ] );
 
 /* Page table */
@@ -133,6 +135,7 @@ void vPortStartFirstTask( void ) __attribute__ (( naked ));
 void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvParameter, unsigned long ulVector, unsigned char ucEdgeTriggered, unsigned char ucPriority, unsigned char ucProcessorTargets );
 /*-----------------------------------------------------------*/
 
+#if 0
 /* Linker defined variables. */
 extern unsigned long _etext;
 extern unsigned long _data;
@@ -142,7 +145,6 @@ extern unsigned long _ebss;
 extern unsigned long _stack_top;
 /*----------------------------------------------------------------------------*/
 
-#if 0
 /*
  * See header file for description.
  */
@@ -275,7 +277,6 @@ void vPortEndScheduler( void )
 	is nothing to return to.  */
 }
 /*-----------------------------------------------------------*/
-#endif
 
 void vPortSysTickHandler( void *pvParameter )
 {
@@ -289,20 +290,32 @@ void vPortSysTickHandler( void *pvParameter )
 	portEND_SWITCHING_ISR(pdTRUE);
 #endif
 }
+#endif
 /*-----------------------------------------------------------*/
 
+void vPortClearTickInterrupt( void )
+{
+	/* Clear the Interrupt. */
+	*(portSYSTICK_INTERRUPT_STATUS) = 0x01UL;
+}
 /*
  * Setup the systick timer to generate the tick interrupts at the required
  * frequency.
  */
-void prvSetupTimerInterrupt( void )
+void vPortSetupTimerInterrupt( void )
 {
 	/* Install the interrupt handler. */
-	vPortInstallInterruptHandler( vPortSysTickHandler, NULL, portSYSTICK_VECTOR_ID, pdTRUE, /* configMAX_SYSCALL_INTERRUPT_PRIORITY */ configKERNEL_INTERRUPT_PRIORITY, 1<<portCORE_ID() );
+	vPortInstallInterruptHandler( (void(*)(void*))FreeRTOS_Tick_Handler, NULL, portSYSTICK_VECTOR_ID, pdTRUE, /* configMAX_SYSCALL_INTERRUPT_PRIORITY */ configKERNEL_INTERRUPT_PRIORITY, 1<<portCORE_ID() );
 
 	/* Configure SysTick to interrupt at the requested rate. */
-	*(portSYSTICK_LOAD) = (configCPU_CLOCK_HZ / configTICK_RATE_HZ ) - 1UL;
+	*(portSYSTICK_LOAD) = (configCPU_PERIPH_HZ / (configTICK_RATE_HZ * (portSYSTICK_PRESCALE + 1)) ) - 1UL;
 	*(portSYSTICK_CONTROL) = ( portSYSTICK_PRESCALE << 8 ) | portSYSTICK_CTRL_ENABLE_PERIODIC_INTERRUPTS;
+
+	/* Finally, allow the GIC to pass interrupts to the processor. */
+	portGIC_WRITE( portGIC_ICDDCR(portGIC_DISTRIBUTOR_BASE), 0x01UL );
+	portGIC_WRITE( portGIC_ICCBPR(portGIC_PRIVATE_BASE), 0x00UL );
+	portGIC_WRITE( portGIC_ICCPMR(portGIC_PRIVATE_BASE), configLOWEST_INTERRUPT_PRIORITY );
+	portGIC_WRITE( portGIC_ICCICR(portGIC_PRIVATE_BASE), 0x01UL );
 
 }
 /*-----------------------------------------------------------*/
@@ -377,8 +390,9 @@ void vApplicationIRQHandler( uint32_t ulICCIAR )
 unsigned long ulVector = 0UL;
 unsigned long ulGICBaseAddress = portGIC_PRIVATE_BASE;
 
-	/* Query the private address first. */
-	ulVector = ulICCIAR;
+	/* The ID of the interrupt is obtained by bitwise anding the ICCIAR value
+	with 0x3FF. */
+	ulVector = ulICCIAR & 0x3FFUL;
 
 	/* Re-enable interrupts. */
     __asm ( "cpsie i" );
@@ -485,14 +499,16 @@ extern unsigned long __bss_end;
 			" nop 								\n"
 			" mov SP, %[abtsp]					\n"
 			" nop 								\n"
-			" cps #19							\n"
+			" cps #31							\n"
 			" nop 								\n"
-			" mov SP, %[svcsp]					\n"
+			" mov SP, %[syssp]					\n"
+			" nop 								\n"
+			" cps #19							\n"
 			" nop 								\n"
 			: : [fiqsp] "r" (puxFIQStackPointer),
 				[irqsp] "r" (puxIRQStackPointer),
 				[abtsp] "r" (puxAbortStackPointer),
-				[svcsp] "r" (puxSVCStackPointer)
+				[syssp] "r" (puxSYSStackPointer)
 				:  );
 
 	/* Finally, copy the exception vector table over the boot loader. */

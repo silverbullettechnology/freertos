@@ -58,6 +58,11 @@ FIQ_Addr:        .word     FIQ_Handler
 
 Reset_Handler:
 	LDR			SP, Stack_Addr
+	// Enable VFP register access (secure mode only)
+	LDR			R0, =(0xF << 20)
+	MCR			P15, 0, R0, C1, C0, 2
+	MOV			R3, #0x40000000
+	VMSR		FPEXC, R3
 	B			_init
 Stack_Addr:		.word	  __stack
 

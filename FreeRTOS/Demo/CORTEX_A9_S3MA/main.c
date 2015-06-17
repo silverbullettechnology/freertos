@@ -97,7 +97,19 @@
 #define mainNO_DELAY				( ( portTickType ) 0 )
 
 #define mainPRINT_PORT				( configUART_PORT )
-#define mainPRINT_BAUDRATE			( 115200 )
+#ifdef configPALLADIUM
+/* 907 KHz */
+//# define mainPRINT_BAUDRATE			2034437
+/* 1.5MHz */
+//# define mainPRINT_BAUDRATE			1209448  /* 1524KHz current baudrate*/
+/* 1.7MHz */
+//# define mainPRINT_BAUDRATE			2123502  /* 1736KHz current baudrate*/
+/* 1.9MHz */
+# define mainPRINT_BAUDRATE			1887557 /* 1953KHz current baudrate */
+#else
+# define mainPRINT_BAUDRATE			115200
+#endif
+
 
 
 /*----------------------------------------------------------------------------*/
