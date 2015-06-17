@@ -97,7 +97,7 @@
 #define mainNO_DELAY				( ( portTickType ) 0 )
 
 #define mainPRINT_PORT				( configUART_PORT )
-#ifdef configPALLADIUM
+#if configPALLADIUM
 /* 907 KHz */
 //# define mainPRINT_BAUDRATE			2034437
 /* 1.5MHz */
