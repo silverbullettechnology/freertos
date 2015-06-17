@@ -1,65 +1,81 @@
 /*
-    FreeRTOS V7.0.1 - Copyright (C) 2011 Real Time Engineers Ltd.
-	
+    FreeRTOS V8.2.1 - Copyright (C) 2015 Real Time Engineers Ltd.
+    All rights reserved
 
-    ***************************************************************************
-     *                                                                       *
-     *    FreeRTOS tutorial books are available in pdf and paperback.        *
-     *    Complete, revised, and edited pdf reference manuals are also       *
-     *    available.                                                         *
-     *                                                                       *
-     *    Purchasing FreeRTOS documentation will not only help you, by       *
-     *    ensuring you get running as quickly as possible and with an        *
-     *    in-depth knowledge of how to use FreeRTOS, it will also help       *
-     *    the FreeRTOS project to continue with its mission of providing     *
-     *    professional grade, cross platform, de facto standard solutions    *
-     *    for microcontrollers - completely free of charge!                  *
-     *                                                                       *
-     *    >>> See http://www.FreeRTOS.org/Documentation for details. <<<     *
-     *                                                                       *
-     *    Thank you for using FreeRTOS, and thank you for your support!      *
-     *                                                                       *
-    ***************************************************************************
-
+    VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
 
     This file is part of the FreeRTOS distribution.
 
     FreeRTOS is free software; you can redistribute it and/or modify it under
     the terms of the GNU General Public License (version 2) as published by the
-    Free Software Foundation AND MODIFIED BY the FreeRTOS exception.
-    >>>NOTE<<< The modification to the GPL is included to allow you to
-    distribute a combined work that includes FreeRTOS without being obliged to
-    provide the source code for proprietary components outside of the FreeRTOS
-    kernel.  FreeRTOS is distributed in the hope that it will be useful, but
-    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-    more details. You should have received a copy of the GNU General Public
-    License and the FreeRTOS license exception along with FreeRTOS; if not it
-    can be viewed here: http://www.freertos.org/a00114.html and also obtained
-    by writing to Richard Barry, contact details for whom are available on the
-    FreeRTOS WEB site.
+    Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+
+    ***************************************************************************
+    >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+    >>!   distribute a combined work that includes FreeRTOS without being   !<<
+    >>!   obliged to provide the source code for proprietary components     !<<
+    >>!   outside of the FreeRTOS kernel.                                   !<<
+    ***************************************************************************
+
+    FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+    link: http://www.freertos.org/a00114.html
+
+    ***************************************************************************
+     *                                                                       *
+     *    FreeRTOS provides completely free yet professionally developed,    *
+     *    robust, strictly quality controlled, supported, and cross          *
+     *    platform software that is more than just the market leader, it     *
+     *    is the industry's de facto standard.                               *
+     *                                                                       *
+     *    Help yourself get started quickly while simultaneously helping     *
+     *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+     *    tutorial book, reference manual, or both:                          *
+     *    http://www.FreeRTOS.org/Documentation                              *
+     *                                                                       *
+    ***************************************************************************
+
+    http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+    the FAQ page "My application does not run, what could be wrong?".  Have you
+    defined configASSERT()?
+
+    http://www.FreeRTOS.org/support - In return for receiving this top quality
+    embedded software for free we request you assist our global community by
+    participating in the support forum.
+
+    http://www.FreeRTOS.org/training - Investing in training allows your team to
+    be as productive as possible as early as possible.  Now you can receive
+    FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+    Ltd, and the world's leading authority on the world's leading RTOS.
+
+    http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+    including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+    compatible FAT file system, and our tiny thread aware UDP/IP stack.
+
+    http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+    Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+
+    http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+    Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+    licenses offer ticketed support, indemnification and commercial middleware.
+
+    http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+    engineered and independently SIL3 certified version for use in safety and
+    mission critical applications that require provable dependability.
 
     1 tab == 4 spaces!
-
-    http://www.FreeRTOS.org - Documentation, latest information, license and
-    contact details.
-
-    http://www.SafeRTOS.com - A version that is certified for use in safety
-    critical systems.
-
-    http://www.OpenRTOS.com - Commercial support, development, porting,
-    licensing and training services.
 */
-
 /*-----------------------------------------------------------
  * Implementation of functions defined in portable.h for the ARM Cortex-A9 port.
  *----------------------------------------------------------*/
 
 /*------------------------------------------------------------------------
- * Authors: Dag Ågren, Åbo Akademi University, Finland
- * 			Simon Holmbacka, Åbo Akademi University, Finland
+ *  Modified by Silver Bullet Technology LLC
+ *  Based on Cortex A9 implementation with original authors:
+ * 	Dag Ågren, Åbo Akademi University, Finland
+ * 	Simon Holmbacka, Åbo Akademi University, Finland
  * 
- * This port has been developed as a part of the RECOMP project
  *------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -76,9 +92,6 @@ FreeRTOS.org versions prior to V4.4.0 did not include this definition. */
 #ifndef configKERNEL_INTERRUPT_PRIORITY
 	#define configKERNEL_INTERRUPT_PRIORITY 255
 #endif
-
-/* Constants required to set up the initial stack. */
-#define portINITIAL_XPSR			( 0x0000001F )
 
 /* Interrupt Handler Support. */
 typedef struct STRUCT_HANDLER_PARAMETER
@@ -117,180 +130,9 @@ static unsigned long PageTable[4096] __attribute__((aligned (16384)));
  */
 void prvSetupTimerInterrupt( void );
 
-/*
- * Exception handlers.
- */
-void vPortPendSVHandler( void *pvParameter ) __attribute__((naked));
-void vPortSysTickHandler( void *pvParameter );
-void vPortSVCHandler( void ) __attribute__ (( naked ));
-void vPortInterruptContext( void ) __attribute__ (( naked ));
-void vPortSMCHandler( void ) __attribute__ (( naked ));
-
-/*
- * Start first task is a separate function so it can be tested in isolation.
- */
-void vPortStartFirstTask( void ) __attribute__ (( naked ));
-
 /* Interrupt Handler code. */
 void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvParameter, unsigned long ulVector, unsigned char ucEdgeTriggered, unsigned char ucPriority, unsigned char ucProcessorTargets );
-/*-----------------------------------------------------------*/
 
-#if 0
-/* Linker defined variables. */
-extern unsigned long _etext;
-extern unsigned long _data;
-extern unsigned long _edata;
-extern unsigned long _bss;
-extern unsigned long _ebss;
-extern unsigned long _stack_top;
-/*----------------------------------------------------------------------------*/
-
-/*
- * See header file for description.
- */
-portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, pdTASK_CODE pxCode, void *pvParameters )
-{
-portSTACK_TYPE *pxOriginalStack = pxTopOfStack;
-	/* Align top of stack */
-	pxTopOfStack = (portSTACK_TYPE *)((unsigned long)(pxTopOfStack)&~portBYTE_ALIGNMENT_MASK);
-	/* Simulate the stack frame as it would be created by a context switch
-	interrupt. */
-	*pxTopOfStack = portINITIAL_XPSR;	/* xPSR */
-	pxTopOfStack--;
-	*pxTopOfStack = ( portSTACK_TYPE ) pxCode;	/* PC */
-	pxTopOfStack--;
-	*pxTopOfStack = ( portSTACK_TYPE ) 0;	/* LR */
-	pxTopOfStack--;
-	*pxTopOfStack = ( portSTACK_TYPE ) pxOriginalStack;	/* SP */
-	pxTopOfStack -= 12;		/* R1 through R12 */
-	pxTopOfStack--;
-	*pxTopOfStack = ( portSTACK_TYPE ) pvParameters;	/* R0 */
-
-	return pxTopOfStack;
-}
-#endif
-
-/*-----------------------------------------------------------*/
-
-#if 0
-void vPortSVCHandler( void )
-{
-	__asm volatile(
-			" ldr r9, pxCurrentTCBConst2	\n"		/* Load the pxCurrentTCB pointer address. */
-			" ldr r8, [r9]					\n"		/* Load the pxCurrentTCB address. */
-			" ldr lr, [r8]					\n"		/* Load the Task Stack Pointer into LR. */
-			" ldmia lr, {r0-lr}^		 	\n"		/* Load the Task's registers. */
-			" add lr, lr, #60			 	\n"		/* Re-adjust the stack for the Task Context */
-			" nop						 	\n"
-			" rfeia lr				 		\n"		/* Return from exception by loading the PC and CPSR from Task Stack. */
-			" nop						 	\n"
-			"								\n"
-			"	.align 2					\n"
-			" pxCurrentTCBConst2: .word pxCurrentTCB	\n"
-			);
-}
-
-/*-----------------------------------------------------------*/
-
-void vPortInterruptContext( void )
-{
-	__asm volatile(
-			" sub lr, lr, #4				\n"		/* Adjust the return address. */
-			" srsdb SP, #31					\n"		/* Store the return address and SPSR to the Task's stack. */
-			" stmdb SP, {SP}^			 	\n"		/* Store the SP_USR to the stack. */
-			" sub SP, SP, #4			 	\n"		/* Decrement the Stack Pointer. */
-			" ldmia SP!, {lr}			 	\n"		/* Load the SP_USR into LR. */
-			" sub LR, LR, #8 				\n"		/* Make room for the previously stored LR and CPSR. */
-			" stmdb LR, {r0-lr}^	 		\n"		/* Store the Task's registers. */
-			" sub LR, LR, #60		 		\n"		/* Adjust the Task's stack pointer. */
-			" ldr r9, pxCurrentTCBConst2	\n"		/* Load the pxCurrentTCB pointer address. */
-			" ldr r8, [r9]					\n"		/* Load the pxCurrentTCB address. */
-			" str lr, [r8]	 				\n"		/* Store the Task stack pointer to the TCB. */
-			" bl vPortGICInterruptHandler	\n"		/* Branch and link to find specific service handler. */
-			" ldr r8, [r9]					\n"		/* Load the pxCurrentTCB address. */
-			" ldr lr, [r8]					\n"		/* Load the Task Stack Pointer into LR. */
-			" ldmia lr, {r0-lr}^		 	\n"		/* Load the Task's registers. */
-			" add lr, lr, #60			 	\n"		/* Re-adjust the stack for the Task Context */
-			" rfeia lr				 		\n"		/* Return from exception by loading the PC and CPSR from Task Stack. */
-			" nop						 	\n"
-			);
-}
-#endif
-
-/*-----------------------------------------------------------*/
-
-void vPortStartFirstTask( void )
-{
-	__asm volatile(
-					" mov SP, %[svcsp]			\n" /* Set-up the supervisor stack. */
-					" svc 0 					\n" /* Use the supervisor call to be in an exception. */
-					" nop						\n"
-					: : [pxTCB] "r" (pxCurrentTCB), [svcsp] "r" (puxSVCStackPointer) :
-				);
-}
-/*-----------------------------------------------------------*/
-
-void vPortSMCHandler( void )
-{
-	/* Nothing to do. */
-}
-/*-----------------------------------------------------------*/
-
-#if 0
-void vPortYieldFromISR( void )
-{
-	vTaskSwitchContext();
-	portSGI_CLEAR_YIELD( portGIC_DISTRIBUTOR_BASE, portCORE_ID() );
-}
-
-/*-----------------------------------------------------------*/
-
-/*
- * See header file for description.
- */
-portBASE_TYPE xPortStartScheduler( void )
-{
-	/* Start the timer that generates the tick ISR.  Interrupts are disabled
-	here already. */
-	prvSetupTimerInterrupt();
-
-	/* Install the interrupt handler. */
-	//vPortInstallInterruptHandler( (void (*)(void *))vPortYieldFromISR, NULL, portSGI_YIELD_VECTOR_ID, pdTRUE, /* configMAX_SYSCALL_INTERRUPT_PRIORITY */ configKERNEL_INTERRUPT_PRIORITY, 1<<portCORE_ID() );
-
-	/* Finally, allow the GIC to pass interrupts to the processor. */
-	portGIC_WRITE( portGIC_ICDDCR(portGIC_DISTRIBUTOR_BASE), 0x01UL );
-	portGIC_WRITE( portGIC_ICCBPR(portGIC_PRIVATE_BASE), 0x00UL );
-	portGIC_WRITE( portGIC_ICCPMR(portGIC_PRIVATE_BASE), configLOWEST_INTERRUPT_PRIORITY );
-	portGIC_WRITE( portGIC_ICCICR(portGIC_PRIVATE_BASE), 0x01UL );
-
-	/* Start the first task. */
-	vPortStartFirstTask();
-
-	/* Should not get here! */
-	return 0;
-}
-/*-----------------------------------------------------------*/
-
-void vPortEndScheduler( void )
-{
-	/* It is unlikely that the CM3 port will require this function as there
-	is nothing to return to.  */
-}
-/*-----------------------------------------------------------*/
-
-void vPortSysTickHandler( void *pvParameter )
-{
-	/* Clear the Interrupt. */
-	*(portSYSTICK_INTERRUPT_STATUS) = 0x01UL;
-
-	FreeRTOS_Tick_Handler();
-
-#if configUSE_PREEMPTION == 1
-	/* If using preemption, also force a context switch. */
-	portEND_SWITCHING_ISR(pdTRUE);
-#endif
-}
-#endif
 /*-----------------------------------------------------------*/
 
 void vPortClearTickInterrupt( void )
@@ -298,6 +140,7 @@ void vPortClearTickInterrupt( void )
 	/* Clear the Interrupt. */
 	*(portSYSTICK_INTERRUPT_STATUS) = 0x01UL;
 }
+
 /*
  * Setup the systick timer to generate the tick interrupts at the required
  * frequency.
@@ -417,14 +260,6 @@ portBASE_TYPE xPriorityMask = portGIC_READ( portGIC_ICCPMR(portGIC_PRIVATE_BASE)
 	portGIC_WRITE( portGIC_ICCPMR(portGIC_PRIVATE_BASE), configMAX_SYSCALL_INTERRUPT_PRIORITY );
 	return xPriorityMask;
 }
-/*----------------------------------------------------------------------------*/
-
-#if 0
-void vPortClearInterruptMask( portBASE_TYPE xPriorityMask )
-{
-	portGIC_WRITE( portGIC_ICCPMR(portGIC_PRIVATE_BASE), xPriorityMask );
-}
-#endif
 
 /*----------------------------------------------------------------------------*/
 

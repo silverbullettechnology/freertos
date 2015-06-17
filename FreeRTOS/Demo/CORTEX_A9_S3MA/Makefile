@@ -1,9 +1,10 @@
 NAME = FreeRTOSDemo
 
 #CCPATH = /opt/gcc-linaro-4.9-2014.11-x86_64_arm-eabi/bin/
-CC = $(CCPATH)arm-none-eabi-gcc
-LD = $(CC5PATH)arm-none-eabi-gcc
-OBJCOPY = $(CCPATH)arm-none-eabi-objcopy
+CROSS_COMPILE ?= arm-none-eabi-
+CC = $(CCPATH)$(CROSS_COMPILE)gcc
+LD = $(CC5PATH)$(CROSS_COMPILE)gcc
+OBJCOPY = $(CCPATH)$(CROSS_COMPILE)objcopy
 
 DEFINES = -DPRINTF_FLOAT_SUPPORT
 
