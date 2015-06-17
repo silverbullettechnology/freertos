@@ -1,9 +1,9 @@
 NAME = FreeRTOSDemo
 
-#DS5PATH = /opt/DS-5/sw/gcc/bin/
-CC = $(DS5PATH)arm-linux-gnueabihf-gcc
-LD = $(DS5PATH)arm-linux-gnueabihf-gcc
-OBJCOPY = $(DS5PATH)arm-linux-gnueabihf-objcopy
+#CCPATH = /opt/gcc-linaro-4.9-2014.11-x86_64_arm-eabi/bin/
+CC = $(CCPATH)arm-none-eabi-gcc
+LD = $(CC5PATH)arm-none-eabi-gcc
+OBJCOPY = $(CCPATH)arm-none-eabi-objcopy
 
 DEFINES = -DPRINTF_FLOAT_SUPPORT
 
@@ -12,15 +12,18 @@ LIBS = -lm
 SOURCE_DIR = ../..
 BUILD_DIR = Build
 
+ARCH_OPTS = 	-march=armv7-a \
+                -mcpu=cortex-a9 \
+                -mfloat-abi=hard \
+                -mfpu=neon \
+                -marm
+
 C_OPTS =	-I"$(SOURCE_DIR)/Demo/CORTEX_A9_S3MA" \
 			-I"$(SOURCE_DIR)/Demo/Common/include" \
 			-I"$(SOURCE_DIR)/Source/include" \
 			-I"$(SOURCE_DIR)/Source/portable/GCC/ARM_CA9" \
 			-Wall \
 			-fmessage-length=0 \
-			-mcpu=cortex-a9 \
-			-mfpu=neon \
-			-marm \
 			-std=c99
 
 ifeq ($(DEBUG),1)
@@ -65,26 +68,24 @@ S_OBJS = $(S_FILES:%.S=$(BUILD_DIR)/%.o)
 
 AUTODEPENDENCY_CFLAGS=-MMD -MF$(@:.o=.d) -MT$@
 
-ALL_CFLAGS = $(C_OPTS) $(DEFINES) $(CFLAGS) $(AUTODEPENDENCY_CFLAGS)
+ALL_CFLAGS = $(C_OPTS) $(ARCH_OPTS) $(DEFINES) $(CFLAGS) $(AUTODEPENDENCY_CFLAGS)
 
 ALL_LDFLAGS_BASE =	$(LD_FLAGS) \
 					-nostartfiles \
-					-mcpu=cortex-a9 \
-					-g3 \
-					-static
+					-g
 
 LINK_PATH = MultiCore/
 
-ALL_LDFLAGS_0 =	$(ALL_LDFLAGS_BASE) \
+ALL_LDFLAGS_0 =	$(ALL_LDFLAGS_BASE) $(ARCH_OPTS) \
 				-Wl,-T,$(LINK_PATH)core.0.ld -Wl,-Map,$(BUILD_DIR)/core.0.map 
 
-ALL_LDFLAGS_1 =	$(ALL_LDFLAGS_BASE) \
+ALL_LDFLAGS_1 =	$(ALL_LDFLAGS_BASE) $(ARCH_OPTS) \
 				-Wl,-T,$(LINK_PATH)core.1.ld -Wl,-Map,$(BUILD_DIR)/core.1.map
 
-ALL_LDFLAGS_2 =	$(ALL_LDFLAGS_BASE) \
+ALL_LDFLAGS_2 =	$(ALL_LDFLAGS_BASE) $(ARCH_OPTS) \
 				-Wl,-T,$(LINK_PATH)core.2.ld -Wl,-Map,$(BUILD_DIR)/core.2.map
 
-ALL_LDFLAGS_3 =	$(ALL_LDFLAGS_BASE) \
+ALL_LDFLAGS_3 =	$(ALL_LDFLAGS_BASE) $(ARCH_OPTS) \
 				-Wl,-T,$(LINK_PATH)core.3.ld -Wl,-Map,$(BUILD_DIR)/core.3.map
 
 AUTODEPENDENCY_CFLAGS=-MMD -MF$(@:.o=.d) -MT$@
