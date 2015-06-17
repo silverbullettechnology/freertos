@@ -100,6 +100,7 @@
 #define mainCHECK_TASK_PRIORITY		( tskIDLE_PRIORITY + 3 )
 #define mainSEM_TEST_PRIORITY		( tskIDLE_PRIORITY + 1 )
 #define mainBLOCK_Q_PRIORITY		( tskIDLE_PRIORITY + 2 )
+#define mainBLINK_TEST_PRIORITY		( tskIDLE_PRIORITY + 1 )
 #define mainGEN_Q_PRIORITY			( tskIDLE_PRIORITY )
 
 /* Misc. */
@@ -126,6 +127,7 @@
 
 /* Periodically checks to see whether the demo tasks are still running. */
 static void vCheckTask( void *pvParameters );
+static void vBlinkTask( void *pvParameters );
 /*----------------------------------------------------------------------------*/
 
 /*
@@ -135,6 +137,11 @@ static void prvSetupHardware( void );
 /*----------------------------------------------------------------------------*/
 
 void vApplicationStackOverflowHook( xTaskHandle *pxTask, signed char *pcTaskName );
+void vPortUnknownInterruptHandler( void *pvParameter );
+void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvParameter, unsigned long ulVector, unsigned char ucEdgeTriggered, unsigned char ucPriority, unsigned char ucProcessorTargets );
+void vUARTInitialise(unsigned long ulUARTPeripheral, unsigned long ulBaud, unsigned long ulQueueSize );
+void vParTestInitialise(void);
+void vParTestToggleLED( unsigned portBASE_TYPE uxLED );
 
 int main( void )
 {
@@ -152,7 +159,9 @@ int main( void )
 	vStartGenericQueueTasks( mainGEN_Q_PRIORITY );
 	vStartQueuePeekTasks();
 	vStartRecursiveMutexTasks();
-
+	/* Start some LED blink tasks */
+	xTaskCreate( vBlinkTask, (const char *)"Blink1", configMINIMAL_STACK_SIZE, (void*)0, mainBLINK_TEST_PRIORITY, NULL );
+	xTaskCreate( vBlinkTask, (const char *)"Blink2", configMINIMAL_STACK_SIZE, (void*)1, mainBLINK_TEST_PRIORITY, NULL );
 	/* Start the tasks defined within the file. */
 	xTaskCreate( vCheckTask, (const char *)"Check", configMINIMAL_STACK_SIZE, NULL, mainCHECK_TASK_PRIORITY, NULL );
 
@@ -291,11 +300,25 @@ signed char cBuffer[64];
 		else
 		{
 			i=sprintf( (char *)cBuffer, "Pass: %lu\r\n", (unsigned long)(xLastExecutionTime / 1000) );
-
 			sprintf( (char *)&cBuffer[i], "From Core: %ld\r\n", (long)portCORE_ID());
 		
 		}
 		vSerialPutString((xComPortHandle)mainPRINT_PORT, (const signed char * const)cBuffer, strlen((char *)cBuffer) );
+	}
+}
+
+static void vBlinkTask( void *pvParameters )
+{
+int i = (int)pvParameters;
+signed char cBuffer[64];
+
+	sprintf( (char *)cBuffer, "Blink Task: %d\r\n", i);
+	vSerialPutString((xComPortHandle)mainPRINT_PORT, (const signed char * const)cBuffer, strlen((char *)cBuffer) );
+
+	for( ;; )
+	{
+		vParTestToggleLED(i);
+		vTaskDelay(configTICK_RATE_HZ);
 	}
 }
 /*-----------------------------------------------------------*/
@@ -387,10 +410,6 @@ volatile unsigned long ulReturn = 0UL;
 }
 
 /*----------------------------------------------------------------------------*/
-extern void vPortUnknownInterruptHandler( void *pvParameter );
-extern void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvParameter, unsigned long ulVector, unsigned char ucEdgeTriggered, unsigned char ucPriority, unsigned char ucProcessorTargets );
-extern void vUARTInitialise(unsigned long ulUARTPeripheral, unsigned long ulBaud, unsigned long ulQueueSize );
-extern void vParTestIniitalize(void);
 
 static void prvSetupHardware( void )
 {
