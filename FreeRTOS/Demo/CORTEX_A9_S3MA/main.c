@@ -387,6 +387,10 @@ volatile unsigned long ulReturn = 0UL;
 }
 
 /*----------------------------------------------------------------------------*/
+extern void vPortUnknownInterruptHandler( void *pvParameter );
+extern void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvParameter, unsigned long ulVector, unsigned char ucEdgeTriggered, unsigned char ucPriority, unsigned char ucProcessorTargets );
+extern void vUARTInitialise(unsigned long ulUARTPeripheral, unsigned long ulBaud, unsigned long ulQueueSize );
+extern void vParTestIniitalize(void);
 
 static void prvSetupHardware( void )
 {
@@ -397,13 +401,13 @@ char cAddress[32];
 	portDISABLE_INTERRUPTS();
 
 	/* Install the Spurious Interrupt Handler to help catch interrupts. */
-extern void vPortUnknownInterruptHandler( void *pvParameter );
-extern void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvParameter, unsigned long ulVector, unsigned char ucEdgeTriggered, unsigned char ucPriority, unsigned char ucProcessorTargets );
 	for ( ulVector = 0; ulVector < portMAX_VECTORS; ulVector++ )
 		vPortInstallInterruptHandler( vPortUnknownInterruptHandler, (void *)ulVector, ulVector, pdTRUE, configMAX_SYSCALL_INTERRUPT_PRIORITY, 1 );
 
-extern void vUARTInitialise(unsigned long ulUARTPeripheral, unsigned long ulBaud, unsigned long ulQueueSize );
 	vUARTInitialise( mainPRINT_PORT, mainPRINT_BAUDRATE, 64 );
+
+	/* Initialise the LED port. */
+	vParTestInitialise();
 
 	ulValue = portCORE_ID();
 	sprintf( cAddress, "Core: %ld\r\n", ulValue );
