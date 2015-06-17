@@ -129,7 +129,7 @@ static struct gpio_regs* xGpioGetBase(unsigned gpio, uint32_t* bit)
 	return regs;
 }
 
-int SetDirectionPin(unsigned pin, enum gpio_direction dir)
+static int GpioSetDirectionPin(unsigned pin, enum gpio_direction dir)
 {
 	uint32_t bit;
 	struct gpio_regs *regs = xGpioGetBase(pin, &bit);
@@ -156,7 +156,7 @@ int SetDirectionPin(unsigned pin, enum gpio_direction dir)
 }
 
 
-int WritePin(unsigned pin, unsigned value)
+static int GpioWritePin(unsigned pin, unsigned value)
 {
 	struct gpio_regs *regs;
 	uint32_t bit;
@@ -174,7 +174,7 @@ int WritePin(unsigned pin, unsigned value)
 	}
 }
 
-int ReadPin(unsigned pin)
+static int GpioReadPin(unsigned pin)
 {
 	uint32_t bit;
 	struct gpio_regs *regs = xGpioGetBase(pin, &bit);
@@ -202,15 +202,15 @@ int ReadPin(unsigned pin)
 void vParTestInitialise( void )
 {
 	/* Enable outputs and set low. */
-	SetDirectionPin( partstLED_OUTPUT, partstDIRECTION_OUTPUT );
-	WritePin(partstLED_OUTPUT, 0);
+	GpioSetDirectionPin( partstLED_OUTPUT, partstDIRECTION_OUTPUT );
+	GpioWritePin(partstLED_OUTPUT, 0);
 }
 /*-----------------------------------------------------------*/
 
 void vParTestSetLED( UBaseType_t uxLED, BaseType_t xValue )
 {
 	( void ) uxLED;
-	WritePin(partstLED_OUTPUT, 1);
+	GpioWritePin(partstLED_OUTPUT, 1);
 }
 /*-----------------------------------------------------------*/
 
@@ -220,8 +220,8 @@ BaseType_t xLEDState;
 
 	( void ) uxLED;
 
-	xLEDState = ReadPin( partstLED_OUTPUT );
-	WritePin(partstLED_OUTPUT, !xLEDState);
+	xLEDState = GpioReadPin( partstLED_OUTPUT );
+	GpioWritePin(partstLED_OUTPUT, !xLEDState);
 }
 
 
