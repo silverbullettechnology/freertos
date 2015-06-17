@@ -107,13 +107,13 @@ static struct gpio_regs* xGpioGetBase(unsigned gpio, uint32_t* bit)
 
 	switch(bank){
 	case 0:
-		regs = (struct gpio_regs *)GPIO0_APB_ABSOLUTE_BASE;
+		regs = (struct gpio_regs *)(GPIO0_APB_ABSOLUTE_BASE);
 		break;
 	case 1:
-		regs = (struct gpio_regs *)GPIO1_APB_ABSOLUTE_BASE;
+		regs = (struct gpio_regs *)(GPIO1_APB_ABSOLUTE_BASE);
 		break;
 	case 2:
-		regs = (struct gpio_regs *)GPIO2_APB_ABSOLUTE_BASE;
+		regs = (struct gpio_regs *)(GPIO2_APB_ABSOLUTE_BASE);
 		break;
 
 	default:
@@ -192,25 +192,32 @@ static int GpioReadPin(unsigned pin)
 }
 
 /*-----------------------------------------------------------*/
+#define ARRAY_SIZE(Array)		(sizeof(Array) / sizeof((Array)[0]))
 
 #define partstNUM_LEDS			( 1 )
 #define partstDIRECTION_OUTPUT	( GPIO_DIRECTION_OUT )
 #define partstOUTPUT_ENABLED	( 1 )
-#define partstLED_OUTPUT		( 21 )
 
+/* List of LEDs on SP3 dev board */
+static const UBaseType_t leds[] = { 21, 22, 4 };
 
 void vParTestInitialise( void )
 {
+	int i;
 	/* Enable outputs and set low. */
-	GpioSetDirectionPin( partstLED_OUTPUT, partstDIRECTION_OUTPUT );
-	GpioWritePin(partstLED_OUTPUT, 0);
+	for(i=0; i < ARRAY_SIZE(leds); i++) {
+		GpioSetDirectionPin( leds[i], partstDIRECTION_OUTPUT );
+		GpioWritePin( leds[i], 0 );
+	}
 }
 /*-----------------------------------------------------------*/
 
 void vParTestSetLED( UBaseType_t uxLED, BaseType_t xValue )
 {
-	( void ) uxLED;
-	GpioWritePin(partstLED_OUTPUT, 1);
+	if(uxLED >= ARRAY_SIZE(leds)) {
+		return;
+	}
+	GpioWritePin(leds[uxLED], 1);
 }
 /*-----------------------------------------------------------*/
 
@@ -218,10 +225,11 @@ void vParTestToggleLED( unsigned portBASE_TYPE uxLED )
 {
 BaseType_t xLEDState;
 
-	( void ) uxLED;
-
-	xLEDState = GpioReadPin( partstLED_OUTPUT );
-	GpioWritePin(partstLED_OUTPUT, !xLEDState);
+	if(uxLED >= ARRAY_SIZE(leds)) {
+		return;
+	}
+	xLEDState = GpioReadPin( leds[uxLED] );
+	GpioWritePin(leds[uxLED], !xLEDState);
 }
 
 
