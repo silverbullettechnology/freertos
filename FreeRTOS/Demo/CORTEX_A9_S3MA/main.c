@@ -312,9 +312,11 @@ static void vBlinkTask( void *pvParameters )
 int i = (int)pvParameters;
 signed char cBuffer[64];
 
-	sprintf( (char *)cBuffer, "Blink Task: %d\r\n", i);
-	vSerialPutString((xComPortHandle)mainPRINT_PORT, (const signed char * const)cBuffer, strlen((char *)cBuffer) );
+	sprintf( (char *)cBuffer, "Blink: %d\r\n", i);
+	//vSerialPutString((xComPortHandle)mainPRINT_PORT, (const signed char * const)cBuffer, strlen((char *)cBuffer) );
 
+	/* Offset start times */
+	vTaskDelay(i*configTICK_RATE_HZ);
 	for( ;; )
 	{
 		vParTestToggleLED(i);
