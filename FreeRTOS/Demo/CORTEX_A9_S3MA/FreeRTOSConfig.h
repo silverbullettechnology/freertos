@@ -91,7 +91,7 @@
 #define configUSE_QUEUE_SETS					1
 #define configGENERATE_RUN_TIME_STATS			0
 #define configUSE_ALTERNATIVE_API				1
-#define configPALLADIUM							1
+#define configPALLADIUM							0
 
 /* Software timer definitions. */
 #define configUSE_TIMERS						1

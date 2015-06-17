@@ -99,7 +99,7 @@ struct gpio_regs {
 #define DATA_REG_ADDR(gpio)		(1 << (gpio + 2))
 
 /*-----------------------------------------------------------*/
-static struct gpio_regs* xGpioGetBase(unsigned gpio, unsigned int* bit)
+static struct gpio_regs* xGpioGetBase(unsigned gpio, uint32_t* bit)
 {
 	unsigned int bank;
 	struct gpio_regs* regs = NULL;
