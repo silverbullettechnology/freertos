@@ -75,8 +75,7 @@
 #define configUSE_TICK_HOOK						1
 #define configMAX_PRIORITIES					( 7 )
 #define configMINIMAL_STACK_SIZE				( ( unsigned portSHORT ) 256 * 4 )
-//#define configTOTAL_HEAP_SIZE					( ( size_t ) 12 * 1024 * 1024 ) /* This parameter has no effect when heap_3.c is included in the project. */
-#define configTOTAL_HEAP_SIZE					( ( size_t ) 1 * 1024 * 1024 )
+#define configTOTAL_HEAP_SIZE					( ( size_t ) 12 * 1024 * 1024 ) /* This parameter has no effect when heap_3.c is included in the project. */
 #define configMAX_TASK_NAME_LEN					( 12 )
 #define configUSE_TRACE_FACILITY				1
 #define configUSE_16_BIT_TICKS					0
