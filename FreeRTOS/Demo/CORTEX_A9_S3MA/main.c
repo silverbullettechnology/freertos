@@ -189,6 +189,7 @@ static void vCheckTask( void *pvParameters )
 {
 portBASE_TYPE xErrorOccurred = pdFALSE;
 portTickType xLastExecutionTime, xFailureTime = 0;
+int i;
 signed char cBuffer[64];
 
 	/* First Task Started. */
@@ -279,9 +280,9 @@ signed char cBuffer[64];
 		}
 		else
 		{
-			sprintf( (char *)cBuffer, "Pass: %lu\r\n", (unsigned long)(xLastExecutionTime / 1000) );
+			i=sprintf( (char *)cBuffer, "Pass: %lu\r\n", (unsigned long)(xLastExecutionTime / 1000) );
 
-			sprintf( (char *)cBuffer, "From Core: %ld\r\n", (long)portCORE_ID());
+			sprintf( (char *)&cBuffer[i], "From Core: %ld\r\n", (long)portCORE_ID());
 		
 		}
 		vSerialPutString((xComPortHandle)mainPRINT_PORT, (const signed char * const)cBuffer, strlen((char *)cBuffer) );
