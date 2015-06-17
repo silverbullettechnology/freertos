@@ -1,6 +1,6 @@
 NAME = FreeRTOSDemo
 
-DS5PATH = /opt/DS-5/sw/gcc/bin/
+#DS5PATH = /opt/DS-5/sw/gcc/bin/
 CC = $(DS5PATH)arm-linux-gnueabihf-gcc
 LD = $(DS5PATH)arm-linux-gnueabihf-gcc
 OBJCOPY = $(DS5PATH)arm-linux-gnueabihf-objcopy
@@ -16,14 +16,18 @@ C_OPTS =	-I"$(SOURCE_DIR)/Demo/CORTEX_A9_S3MA" \
 			-I"$(SOURCE_DIR)/Demo/Common/include" \
 			-I"$(SOURCE_DIR)/Source/include" \
 			-I"$(SOURCE_DIR)/Source/portable/GCC/ARM_CA9" \
-			-O3 \
 			-Wall \
 			-fmessage-length=0 \
 			-mcpu=cortex-a9 \
 			-mfpu=neon \
 			-marm \
-			-g \
 			-std=c99
+
+ifeq ($(DEBUG),1)
+  C_OPTS += -g -Og
+else
+  C_OPTS += -O3
+endif
 
 C_FILES =	Source/croutine.c \
 			Source/list.c \
@@ -66,7 +70,8 @@ ALL_CFLAGS = $(C_OPTS) $(DEFINES) $(CFLAGS) $(AUTODEPENDENCY_CFLAGS)
 ALL_LDFLAGS_BASE =	$(LD_FLAGS) \
 					-nostartfiles \
 					-mcpu=cortex-a9 \
-					-g3
+					-g3 \
+					-static
 
 LINK_PATH = MultiCore/
 
