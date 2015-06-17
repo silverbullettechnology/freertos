@@ -19,6 +19,7 @@ SECTIONS
    *(.text)
    *(.text.*)
    *(.gnu.linkonce.t.*)
+   *(.plt)
    *(.gnu_warning)
    *(.gcc_execpt_table)
    *(.glue_7)

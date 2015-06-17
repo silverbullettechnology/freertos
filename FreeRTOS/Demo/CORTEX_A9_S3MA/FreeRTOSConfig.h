@@ -70,13 +70,13 @@
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1
 #define configUSE_TICKLESS_IDLE					0
 #define configTICK_RATE_HZ						( ( TickType_t ) 1000 )
-#define configPERIPHERAL_CLOCK_HZ  				( 33333000UL )
 #define configUSE_PREEMPTION					1
 #define configUSE_IDLE_HOOK						1
 #define configUSE_TICK_HOOK						1
 #define configMAX_PRIORITIES					( 7 )
 #define configMINIMAL_STACK_SIZE				( ( unsigned portSHORT ) 256 * 4 )
-#define configTOTAL_HEAP_SIZE					( ( size_t ) 12 * 1024 * 1024 ) /* This parameter has no effect when heap_3.c is included in the project. */
+//#define configTOTAL_HEAP_SIZE					( ( size_t ) 12 * 1024 * 1024 ) /* This parameter has no effect when heap_3.c is included in the project. */
+#define configTOTAL_HEAP_SIZE					( ( size_t ) 1 * 1024 * 1024 )
 #define configMAX_TASK_NAME_LEN					( 12 )
 #define configUSE_TRACE_FACILITY				1
 #define configUSE_16_BIT_TICKS					0
@@ -91,6 +91,7 @@
 #define configUSE_QUEUE_SETS					1
 #define configGENERATE_RUN_TIME_STATS			0
 #define configUSE_ALTERNATIVE_API				1
+#define configPALLADIUM							1
 
 /* Software timer definitions. */
 #define configUSE_TIMERS						1
@@ -108,12 +109,10 @@
 #define configKERNEL_INTERRUPT_PRIORITY 		( 0xC0 )
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( 0xA0 ) /* equivalent to 0xa0, or priority 5. */
 
-#define configCPU_CLOCK_HZ				( ( unsigned portLONG ) 38400000 * 20 )
+#define configCLOCK_HZ					( ( unsigned portLONG ) 38400000 )
+#define configCPU_CLOCK_HZ				( configCLOCK_HZ * 20 )
 #define configCPU_PERIPH_HZ				( configCPU_CLOCK_HZ / 2 )
-#define configUART_PORT					( portCORE_ID() )
-
-/* Set the following definitions to 1 to include the API function, or zero
-to exclude the API function. */
+#define configUART_PORT					( portCORE_ID() % 2 )
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
@@ -168,10 +167,11 @@ nothing to return to.  To avoid this define configTASK_RETURN_ADDRESS to 0.  */
  * that is suitable for use on the S3MA A9 MPU.  FreeRTOS_Tick_Handler() must
  * be installed as the peripheral's interrupt handler.
  */
-void prvSetupTimerInterrupt( void );
-#define configSETUP_TICK_INTERRUPT() prvSetupTimerInterrupt()
+void vPortSetupTimerInterrupt( void );
+#define configSETUP_TICK_INTERRUPT() vPortSetupTimerInterrupt()
 
-#define configCLEAR_TICK_INTERRUPT()
+void vPortClearTickInterrupt( void );
+#define configCLEAR_TICK_INTERRUPT() vPortClearTickInterrupt()
 
 /* The following constant describe the hardware, and are correct for the
 S3MA MPU. */
