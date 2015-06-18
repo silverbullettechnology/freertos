@@ -480,6 +480,8 @@ char cAddress[32];
 	/* Initialise the LED port. */
 	vParTestInitialise();
 
+/* When using IRQ based UART operation its not possible to print until the scheduler starts... */
+#if 0
 	ulValue = portCORE_ID();
 	sprintf( cAddress, "Core: %ld\r\n", ulValue );
 	vSerialPutString((xComPortHandle)configUART_PORT,(const signed char * const)cAddress, strlen(cAddress) );
@@ -522,6 +524,7 @@ char cAddress[32];
 	ulValue = prvReadP15_C12_C0_1();
 	sprintf( cAddress, "MVBAR: 0x%08lX\r\n", ulValue );
 	vSerialPutString((xComPortHandle)configUART_PORT,(const signed char * const)cAddress, strlen(cAddress) );
+#endif
 
 	/* Perform any other peripheral configuration. */
 }
