@@ -136,7 +136,6 @@ static void vBlinkTask( void *pvParameters );
 static void prvSetupHardware( void );
 /*----------------------------------------------------------------------------*/
 
-void vApplicationStackOverflowHook( xTaskHandle *pxTask, signed char *pcTaskName );
 void vPortUnknownInterruptHandler( void *pvParameter );
 void vPortInstallInterruptHandler( void (*vHandler)(void *), void *pvParameter, unsigned long ulVector, unsigned char ucEdgeTriggered, unsigned char ucPriority, unsigned char ucProcessorTargets );
 void vUARTInitialise(unsigned long ulUARTPeripheral, unsigned long ulBaud, unsigned long ulQueueSize );
@@ -232,8 +231,28 @@ void vApplicationTickHook( void )
 
 }
 
-/*----------------------------------------------------------------------------*/
+/*-----------------------------------------------------------*/
 
+void vAssertCalled( const char * pcFile, unsigned long ulLine )
+{
+volatile unsigned long ul = 0;
+
+	( void ) pcFile;
+	( void ) ulLine;
+
+	taskENTER_CRITICAL();
+	{
+		/* Set ul to a non-zero value using the debugger to step out of this
+		function. */
+		while( ul == 0 )
+		{
+			portNOP();
+		}
+	}
+	taskEXIT_CRITICAL();
+}
+
+/*-----------------------------------------------------------*/
 
 static void vCheckTask( void *pvParameters )
 {
@@ -507,17 +526,4 @@ char cAddress[32];
 	/* Perform any other peripheral configuration. */
 }
 /*----------------------------------------------------------------------------*/
-
-void vApplicationMallocFailedHook( void )
-{
-	__asm volatile (" smc #0 ");
-}
-/*----------------------------------------------------------------------------*/
-
-void vAssertCalled( const char *file, unsigned long line )
-{
-	printf("Assertion failed at %s, line %lu\n\r",file,line);
-	taskDISABLE_INTERRUPTS();
-	for( ;; );
-}
 

@@ -75,7 +75,7 @@
 #include "semphr.h"
 /*----------------------------------------------------------------------------*/
 
-#define UART_USE_INTERRUPT			0
+#define UART_USE_INTERRUPT	0
 
 #define UART0_BASE			( UART0_APB_ABSOLUTE_BASE )		/* S3MA UART0. */
 #define UART1_BASE			( UART1_APB_ABSOLUTE_BASE )		/* S3MA UART1. */
@@ -114,8 +114,8 @@
 #define UART_CLK_HZ				( configCLOCK_HZ )
 
 #define UART_FIFO_SIZE_BYTES	( 32UL )
-#define UART0_VECTOR_ID			( 44 )
-#define UART1_VECTOR_ID			( 45 )
+#define UART0_VECTOR_ID			( 100 )
+#define UART1_VECTOR_ID			( 101 )
 #define UART2_VECTOR_ID			( 46 )
 #define UART3_VECTOR_ID			( 47 )
 #define UART4_VECTOR_ID			( 48 )
