@@ -99,12 +99,12 @@ typedef struct STRUCT_HANDLER_PARAMETER
 	void (*vHandler)(void *);
     void *pvParameter;
 } xInterruptHandlerDefinition;
-xInterruptHandlerDefinition pxInterruptHandlers[ portMAX_VECTORS ] = { { NULL, NULL } };
+xInterruptHandlerDefinition pxInterruptHandlers[ configMAX_VECTORS ] = { { NULL, NULL } };
 
 extern unsigned portBASE_TYPE * volatile pxCurrentTCB;
 
 /* Definition of the max vector id. */
-static unsigned long ulMaxVectorId = portMAX_VECTORS;
+static unsigned long ulMaxVectorId = configMAX_VECTORS;
 
 /* The priority used by the kernel is assigned to a variable to make access
 from inline assembler easier. */
@@ -175,15 +175,15 @@ unsigned long ulOffset16 = ulVector % 16;
 unsigned long puxGICDistributorAddress = 0;
 
 	/* Select which GIC to use. */
-	if ( ulVector < 32 )
+	if ( ulVector < configMAX_VECTORS )
 	{
 		/* puxGICAddress = portGIC_PRIVATE_BASE; */
 		puxGICDistributorAddress = portGIC_DISTRIBUTOR_BASE;
 	}
-
 	else
 	{
 		/* Shouldn't get here. */
+		return;
 	}
 
 	/* Record the Handler. */

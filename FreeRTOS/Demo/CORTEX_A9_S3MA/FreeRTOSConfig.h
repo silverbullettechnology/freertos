@@ -114,19 +114,20 @@
 #define configTIMER_TASK_STACK_DEPTH			( configMINIMAL_STACK_SIZE * 2 )
 
 /* Co-routine definitions. */
-#define configUSE_CO_ROUTINES 		0
-#define configMAX_CO_ROUTINE_PRIORITIES ( 2 )
+#define configUSE_CO_ROUTINES 					0
+#define configMAX_CO_ROUTINE_PRIORITIES 		( 2 )
 
 /* Interrupt Priority Levels. */
 #define configMAX_API_CALL_INTERRUPT_PRIORITY	18
 #define configLOWEST_INTERRUPT_PRIORITY 		( 0xFF )
 #define configKERNEL_INTERRUPT_PRIORITY 		( 0xC0 )
 #define configMAX_SYSCALL_INTERRUPT_PRIORITY 	( 0xA0 ) /* equivalent to 0xa0, or priority 5. */
+#define configMAX_VECTORS                       ( portMAX_VECTORS + 223)
 
-#define configCLOCK_HZ					( ( unsigned portLONG ) 38400000 )
-#define configCPU_CLOCK_HZ				( configCLOCK_HZ * 20 )
-#define configCPU_PERIPH_HZ				( configCPU_CLOCK_HZ / 2 )
-#define configUART_PORT					( portCORE_ID() % 2 )
+#define configCLOCK_HZ							( ( unsigned portLONG ) 38400000 )
+#define configCPU_CLOCK_HZ						( configCLOCK_HZ * 20 )
+#define configCPU_PERIPH_HZ						( configCPU_CLOCK_HZ / 2 )
+#define configUART_PORT							( portCORE_ID() % 2 )
 
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
