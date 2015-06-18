@@ -75,7 +75,7 @@
 #include "semphr.h"
 /*----------------------------------------------------------------------------*/
 
-#define UART_USE_INTERRUPT	0
+#define UART_USE_INTERRUPT	1
 
 #define UART0_BASE			( UART0_APB_ABSOLUTE_BASE )		/* S3MA UART0. */
 #define UART1_BASE			( UART1_APB_ABSOLUTE_BASE )		/* S3MA UART1. */
@@ -104,6 +104,7 @@
 #define UARTPCellID2(x)		( (volatile unsigned char *)	( (x) + 0x0FF8UL ) )	/* UARTPCellID2 Register */
 #define UARTPCellID3(x)		( (volatile unsigned char *)	( (x) + 0x0FFCUL ) )	/* UARTPCellID3 Register */
 
+#define UART_INT_STATUS_RT	( 1 << 6 )
 #define UART_INT_STATUS_TX	( 1 << 5 )
 #define UART_INT_STATUS_RX	( 1 << 4 )
 
@@ -116,9 +117,6 @@
 #define UART_FIFO_SIZE_BYTES	( 32UL )
 #define UART0_VECTOR_ID			( 100 )
 #define UART1_VECTOR_ID			( 101 )
-#define UART2_VECTOR_ID			( 46 )
-#define UART3_VECTOR_ID			( 47 )
-#define UART4_VECTOR_ID			( 48 )
 
 #define TX_QUEUE				( 0 )
 #define RX_QUEUE				( 1 )
@@ -174,7 +172,7 @@ unsigned long ulUART = 0;
 		}
 	}
 
-	if ( usStatus & UART_INT_STATUS_RX )
+	if ( usStatus & (UART_INT_STATUS_RX | UART_INT_STATUS_RT) )
 	{
 		/* Receive Buffer is almost full. */
 		while ( !( *UARTFR(ulBase) & UART_FLAG_RXFE ) )
@@ -220,7 +218,7 @@ unsigned int fraction;
 		#if UART_USE_INTERRUPT
 		ulVectorID = UART0_VECTOR_ID;
 		/* Create the Queues to Handle the bytes. */
-		xUartQueues[0][TX_QUEUE] = xSemaphoreCreateCounting( ulQueueSize, ulQueueSize );
+		xUartQueues[0][TX_QUEUE] = xQueueCreate( ulQueueSize, sizeof( char ) );
 		xUartQueues[0][RX_QUEUE] = xQueueCreate( ulQueueSize, sizeof( char ) );
 		#endif
 		break;
@@ -261,7 +259,7 @@ unsigned int fraction;
 	*UARTICR(ulBase) = 0xFFFF;	/* Clear all Iterrupts. */
 
 #if UART_USE_INTERRUPT
-	*UARTIMSC(ulBase) = UART_INT_STATUS_TX | UART_INT_STATUS_RX;
+	*UARTIMSC(ulBase) = UART_INT_STATUS_TX | UART_INT_STATUS_RX | UART_INT_STATUS_RT;
 	vPortInstallInterruptHandler( vUARTInterruptHandler, (void *)ulBase, ulVectorID, pdFALSE, configMAX_SYSCALL_INTERRUPT_PRIORITY, 1 );
 #endif /* UART_USE_INTERRUPT */
 
@@ -282,14 +280,12 @@ unsigned char ucStatus = 0;
 	switch ( ulUARTPeripheral )
 	{
 	case 0:
-	case 2:
 		ulBase = UART0_BASE;
 		#if UART_USE_INTERRUPT
 		xTxQueue = xUartQueues[0][TX_QUEUE];
 		#endif
 		break;
 	case 1:
-	case 3:
 		ulBase = UART1_BASE;
 		#if UART_USE_INTERRUPT
 		xTxQueue = xUartQueues[1][TX_QUEUE];
@@ -305,7 +301,8 @@ unsigned char ucStatus = 0;
 			ucStatus = *UARTFR(ulBase);
 		taskEXIT_CRITICAL();
 
-		if ( ucStatus & UART_FLAG_TXFE )
+		/* Put a byte directly in the fifo if there is room */
+		if ( (ucStatus & UART_FLAG_TXFF) == 0 )
 		{
 			/* Need to kick of the Tx. */
 			(void)xQueueReceive( xTxQueue, &cChar, 0 );
@@ -333,14 +330,12 @@ xQueueHandle xRxQueue = NULL;
 	switch ( ulUARTPeripheral )
 	{
 	case 0:
-	case 2:
 		ulBase = UART0_BASE;
 		#if UART_USE_INTERRUPT
 		xRxQueue = xUartQueues[0][RX_QUEUE];
 		#endif
 		break;
 	case 1:
-	case 3:
 		ulBase = UART1_BASE;
 		#if UART_USE_INTERRUPT
 		xRxQueue = xUartQueues[1][RX_QUEUE];
