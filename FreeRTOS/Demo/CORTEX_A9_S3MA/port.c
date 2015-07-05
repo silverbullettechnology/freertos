@@ -373,15 +373,54 @@ extern unsigned long __bss_end;
 	WriteACTLR(ReadACTLR()|(1<<2));
 
 	// Set up page table.
-	for(i=0;i<64;i++)
+	// Boot flash cachable
+	for(i=0;i<16;i++)
 	{
 		PageTable[i]=(i<<20)|0x05de6;
 	}
-
-	for(i=64;i<4096;i++)
+	// No access to reserved
+	for(i=16;i<64;i++)
+	{
+		PageTable[i]=0;
+	}
+	// OCM
+	for(i=64;i<65;i++)
 	{
 		PageTable[i]=(i<<20)|0x0de2;
 	}
+	// No access to reserved
+	for(i=65;i<128;i++)
+	{
+		PageTable[i]=0;
+	}
+	// Device memory
+	for(i=128;i<144;i++)
+	{
+		PageTable[i]=(i<<20)|0x0de2;
+	}
+	// No access to reserved
+	for(i=144;i<958;i++)
+	{
+		PageTable[i]=0;
+	}
+	// Device memory
+	for(i=958;i<2048;i++)
+	{
+		PageTable[i]=(i<<20)|0x0de2;
+	}
+	// 1GB DDR
+	for(i=2048;i<3072;i++)
+	{
+		// TODO: DRAM cache enable breaks
+		//PageTable[i]=(i<<20)|0x05de6;
+		PageTable[i]=(i<<20)|0x0de2;
+	}
+	// Last 1GB reserved
+	for(i=3072;i<4096;i++)
+	{
+		PageTable[i]=0;
+	}
+
 
 	// Initialize MMU.
 
